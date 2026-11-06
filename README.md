@@ -24,7 +24,7 @@ TZ=Asia/Tokyo npm test
 - **Data table** (`/data`, `/data.csv`): every sample-level measurement, filtered by formulation, with the append form and the CSV export.
 - **Attachments** (`/experiments/:id/attachments`): the three seeded files and the add form with type and size validation.
 
-Every screen is its own Cordis plugin in `plugins/`, with a row in `blend.yaml` and a `plugin.json`. Settings > Plugins switches any of them off and only that feature leaves: turn `data` off and `/data` and `/data.csv` disappear while the record keeps working.
+Every screen is its own Cordis plugin in `plugins/`, with a row in `blend.yaml` and a `plugin.json`. Settings > Plugins switches any of them off and only that feature leaves: turn `data-table` off and `/data` and `/data.csv` disappear while the record keeps working.
 
 ## Notes on the design
 
