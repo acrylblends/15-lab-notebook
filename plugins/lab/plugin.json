@@ -1,0 +1,9 @@
+{
+  "name": "lab",
+  "description": "The Lab Notebook's domain: notebooks, experiments, measurements, observations and unit conversion, saved as JSON in the app's data home. The page plugin injects it.",
+  "requires": [],
+  "inject": ["appInstance"],
+  "provides": ["lab"],
+  "dependencies": { "@deepseek-ai/cordis": "4.0.4" },
+  "mount": "a row `- id: lab` / `name: lab` before the page rows in blend.yaml; a page injects the `lab` service"
+}

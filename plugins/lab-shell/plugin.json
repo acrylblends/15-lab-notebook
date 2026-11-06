@@ -1,0 +1,9 @@
+{
+  "name": "lab-shell",
+  "description": "The Lab Notebook's page shell: the notebook rail with its new-notebook form, the experiment list and the record column.",
+  "requires": [],
+  "inject": ["lab", "router"],
+  "provides": ["shell"],
+  "dependencies": { "@deepseek-ai/cordis": "4.0.4" },
+  "mount": "a row `- id: lab-shell` / `name: lab-shell` after the lab row and before the notebook row in blend.yaml; a page injects `shell`"
+}

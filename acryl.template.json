@@ -1,0 +1,5 @@
+{
+  "name": "Lab Notebook",
+  "description": "A reproducible experiment record: notebooks, methods, append-only observations, measurements with units, a chart and CSV export.",
+  "plugins": []
+}

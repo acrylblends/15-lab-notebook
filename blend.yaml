@@ -1,0 +1,36 @@
+apiVersion: blends.acryl.dev/v1alpha1
+kind: Blueprint
+metadata:
+  id: acrylblends.lab-notebook
+  name: "Lab Notebook"
+  version: 0.1.0
+  category: scientific-engineering
+  description: "A reproducible experiment record: notebooks, methods, append-only observations, measurements with units, a chart and CSV export."
+  license: MIT
+  visibility: public
+spec:
+  runtime: cordis
+  parameters:
+    hostname: { type: string, default: 127.0.0.1 }
+  rows:
+    - id: router
+      name: acryl-router
+    - id: home
+      name: home
+    # The domain: notebooks, experiments, measurements, observations and unit conversion, saved as JSON in the app's data home.
+    - id: lab
+      name: lab
+    # The notebook rail with its new-notebook form and experiment list.
+    - id: lab-shell
+      name: lab-shell
+    # The experiment record, the data table, the forms and the CSV export.
+    - id: notebook
+      name: notebook
+    - id: extensions
+      name: extensions
+    - id: server
+      name: acryl-node-server
+      config:
+        hostname: "{{parameters.hostname}}"
+    - id: acryl-door
+      name: acryl-door
