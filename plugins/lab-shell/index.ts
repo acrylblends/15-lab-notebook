@@ -1,25 +1,51 @@
-/** The lab shell: the notebook rail (notebooks, new notebook, experiments) and the record column. */
+/** The Lab Notebook shell: the FIELD / LAB sidebar with notebooks, the new-notebook action, the experiments and the project footer. */
 import type { Context } from '@deepseek-ai/cordis'
 import { Acryl } from '../acryl-router/src/index.ts'
-import type { Lab } from '../lab/index.ts'
-import { createShell, escapeHtml, type NavItem, type Shell } from './core.ts'
+import { dateText, type Lab } from '../lab/index.ts'
+import { createShell, escapeHtml, type Shell } from './core.ts'
 import { STYLES } from './styles.ts'
 export * from './core.ts'
-export const APP_TITLE = 'Field Lab'
-export interface ShellConfig { readonly prefix?: string }
+export * from './ui.ts'
+export const APP_TITLE = 'Lab Notebook'
+export interface ShellConfig {
+  readonly prefix?: string
+}
 export const name = 'lab-shell'
 export const inject = ['lab', 'router']
-declare module '@deepseek-ai/cordis' { interface Context { shell: Shell } }
-function rail(lab: Lab, _nav: readonly NavItem[], active: string | undefined, href: (path: string) => string): string {
-  const notebooks = lab.notebooks().map((notebook) => `<a class="exp${active === `notebook:${notebook.id}` ? ' active' : ''}" href="${href(`/notebooks/${encodeURIComponent(notebook.id)}`)}" style="text-decoration:none">◉ ${escapeHtml(notebook.title)} <small>Notebook ${escapeHtml(notebook.code)} · ${String(lab.experiments(notebook.id).length)} experiments</small></a>`).join('')
-  const first = lab.notebooks()[0]
-  const experiments = first === undefined ? '' : lab.experiments(first.id).map((experiment, index) => `<a class="exp${active === `experiment:${experiment.id}` ? ' active' : ''}" href="${href(`/experiments/${encodeURIComponent(experiment.id)}`)}" style="text-decoration:none">0${String(index + 1)} · ${escapeHtml(experiment.title)} <small>Updated ${escapeHtml(experiment.startedAt.slice(0, 10))} · ${escapeHtml(experiment.protocolVersion)}</small></a>`).join('')
-  return `<aside class="side"><div class="labbrand">FIELD <i>／</i> LAB</div><h4>MY NOTEBOOKS</h4>${notebooks}<form method="post" action="${href('/notebooks')}" style="margin:8px 0"><input name="title" placeholder="New notebook title" required style="width:100%;border:1px solid #dce7e9;border-radius:4px;padding:7px;font-size:8px;background:white"><button style="margin-top:5px;border:1px solid #dce7e9;background:#eef4f4;border-radius:4px;padding:6px 8px;font-size:8px;color:#4f6a70">＋ New notebook</button></form><h4>EXPERIMENTS</h4>${experiments}<div class="sidefoot">PROJECT: MATERIALS / BATCH 04<br>ACCESS: PRIVATE RESEARCH GROUP<br>LAST SYNC: ${escapeHtml(lab.now.toISOString().slice(11, 16))}</div></aside>`
+declare module '@deepseek-ai/cordis' {
+  interface Context {
+    shell: Shell
+  }
 }
+
+function syncText(now: Date): string {
+  return `${String(now.getUTCHours()).padStart(2, '0')}:${String(now.getUTCMinutes()).padStart(2, '0')}`
+}
+
 export function apply(ctx: Context, config: ShellConfig = {}): void {
   const lab: Lab = ctx.lab
   const prefix = config.prefix ?? ''
-  const shell = createShell(prefix, { appTitle: APP_TITLE, css: STYLES, bodyClass: 'lab', rail: (nav, active, href) => rail(lab, nav, active, href) })
+  const sidebar = (notebookId: string | undefined, experimentId: string | undefined, href: (path: string) => string): string => {
+    const notebook = notebookId === undefined ? lab.notebooks()[0] : lab.notebook(notebookId)
+    const experiments = notebook === undefined ? [] : lab.experiments(notebook.id)
+    const notebooks = lab.notebooks()
+      .map((entry) => {
+        const active = entry.id === notebook?.id
+        const count = lab.experiments(entry.id).length
+        return `<a class="exp${active ? ' active' : ''}" href="${href('/notebooks')}#${encodeURIComponent(entry.id)}"><span>${active ? '◉' : '◌'} ${escapeHtml(entry.title)}</span><small>Notebook ${escapeHtml(entry.code)} · ${String(count)} experiments</small></a>`
+      })
+      .join('')
+    const items = experiments
+      .slice(0, 3)
+      .map(
+        (experiment) =>
+          `<a class="exp${experiment.id === experimentId ? ' active' : ''}" href="${href(`/experiments/${encodeURIComponent(experiment.id)}`)}"><span>${String(experiment.number).padStart(2, '0')} · ${escapeHtml(experiment.title)}</span><small>Started ${dateText(experiment.startedAt)} · ${escapeHtml(experiment.code)}</small></a>`,
+      )
+      .join('')
+    const project = notebook === undefined ? 'UNASSIGNED' : notebook.project.toUpperCase()
+    return `<aside class="side"><a class="labbrand" href="${href('/')}">FIELD <i>／</i> LAB</a><h4>MY NOTEBOOKS</h4>${notebooks}<a class="newbook" href="${href('/notebooks/new')}">＋ New notebook</a><h4>EXPERIMENTS</h4>${items}<div class="sidefoot">PROJECT: ${escapeHtml(project)}<br>ACCESS: PRIVATE RESEARCH GROUP<br>LAST SYNC: ${syncText(lab.now)}</div></aside>`
+  }
+  const shell = createShell(prefix, { appTitle: APP_TITLE, css: STYLES, bodyClass: 'lab', sidebar })
   ctx.provide('shell', shell)
   ctx.router.route(prefix === '' ? '/' : prefix, new Acryl().get('/health', (c) => c.json({ ok: true })))
 }

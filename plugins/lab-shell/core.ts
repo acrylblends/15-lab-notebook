@@ -1,52 +1,61 @@
-/** The page shell every page plugin shares: the dark rail, links under the mount prefix, notices and the toast. */
-export interface NavItem {
-  readonly id: string
-  readonly label: string
-  readonly icon: string
-  readonly path: string
-  readonly order: number
-  count?(): number
+/**
+ * The page shell every page plugin shares (`ctx.shell`): the notebook sidebar, the page wrapper, links under the mount prefix, the notice of a redirect
+ * and the toast. Pages render the main column; the sidebar is built from the notebook and the active experiment.
+ */
+export interface PageInput {
+  /** The browser tab's title (the app name is added). */
+  readonly title: string
+  /** The main column's HTML. */
+  readonly main: string
+  /** The notebook whose experiments the sidebar lists; absent uses the first notebook. */
+  readonly notebookId?: string
+  /** The experiment to highlight in the sidebar. */
+  readonly experimentId?: string
+  /** Extra HTML at the end of the body: a page's own `<script>`. */
+  readonly scripts?: string
 }
 
+/** A line after a form was sent: `?ok=` or `?error=` on the redirect. */
 export type Notice = { readonly kind: 'ok' | 'error' | 'warn'; readonly text: string }
 
 export interface Shell {
   readonly prefix: string
   e(text: string): string
-  href(path: string): string
-  nav(item: NavItem): () => void
-  navItems(): readonly NavItem[]
-  page(input: { readonly active?: string; readonly title: string; readonly main: string; readonly scripts?: string }): string
+  readonly href: (path: string) => string
+  page(input: PageInput): string
+  /** The notice of a request's `?ok=` / `?error=` / `?warn=` query, as HTML (empty when there is none). */
   notice(url: string): string
   back(value: unknown, fallback: string): string
+  /** A path with a notice for the page it lands on: `url('/data', { kind: 'ok', text: 'Saved.' })`. */
   url(path: string, notice?: Notice): string
 }
 
 export const escapeHtml = (text: string): string =>
-  text.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;')
+  text
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;')
+
+export function noticeQuery(notice: Notice): string {
+  return `?${notice.kind}=${encodeURIComponent(notice.text)}`
+}
 
 export const CLIENT_SCRIPT = `<script>
 (function () {
   var timer;
   function toast(message) {
-    var el = document.getElementById('toast');
-    if (!el) return;
-    el.textContent = message;
-    el.classList.add('show');
+    var element = document.getElementById('toast');
+    if (!element) return;
+    element.textContent = message;
+    element.classList.add('show');
     clearTimeout(timer);
-    timer = setTimeout(function () { el.classList.remove('show'); }, 2200);
+    timer = setTimeout(function () { element.classList.remove('show'); }, 1800);
   }
-  window.acrylToast = toast;
+  window.fieldLabToast = toast;
   document.querySelectorAll('[data-toast]').forEach(function (button) {
     button.addEventListener('click', function () { toast(button.dataset.toast); });
-  });
-  document.querySelectorAll('[data-copy]').forEach(function (button) {
-    button.addEventListener('click', function () {
-      var source = document.getElementById(button.dataset.copy);
-      if (!source) return;
-      if (navigator.clipboard) navigator.clipboard.writeText(source.textContent).then(function () { toast('Copied'); });
-      else toast(source.textContent);
-    });
   });
 }());
 </script>`
@@ -55,41 +64,25 @@ export interface ShellLook {
   readonly appTitle: string
   readonly css: string
   readonly bodyClass: string
-  rail(nav: readonly NavItem[], active: string | undefined, href: (path: string) => string): string
+  readonly sidebar: (notebookId: string | undefined, experimentId: string | undefined, href: (path: string) => string) => string
 }
 
 export function createShell(prefix: string, look: ShellLook): Shell {
-  const items = new Map<string, NavItem>()
   const href = (path: string): string => `${prefix}${path.startsWith('/') ? path : `/${path}`}`
-  const navItems = () => [...items.values()].sort((a, b) => a.order - b.order)
   return {
     prefix,
     e: escapeHtml,
     href,
-    nav(item) {
-      if (items.has(item.id)) throw new Error(`the shell already has "${item.id}"`)
-      items.set(item.id, item)
-      return () => {
-        if (items.get(item.id) === item) items.delete(item.id)
-      }
+    back(value, fallback) {
+      return typeof value === 'string' && value.startsWith('/') && !value.startsWith('//') && !value.includes('\\')
+        ? value
+        : fallback
     },
-    navItems,
-    page({ active, title, main, scripts }) {
-      return `<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${escapeHtml(title)} · ${escapeHtml(look.appTitle)}</title>
-<style>${look.css}</style>
-</head>
-<body class="${look.bodyClass}">
-<div class="shell">${look.rail(navItems(), active, href)}<main class="main">${main}</main></div>
-<div class="toast" id="toast" aria-live="polite"></div>
-${CLIENT_SCRIPT}
-${scripts ?? ''}
-</body>
-</html>`
+    url(path, notice) {
+      const [base, query] = path.split('?') as [string, string | undefined]
+      const noticeText = notice === undefined ? '' : noticeQuery(notice).slice(1)
+      const joined = [query, noticeText].filter((part) => part !== undefined && part !== '').join('&')
+      return `${href(base)}${joined === '' ? '' : `?${joined}`}`
     },
     notice(url) {
       const query = new URL(url, 'http://local').searchParams
@@ -100,13 +93,22 @@ ${scripts ?? ''}
       }
       return ''
     },
-    back(value, fallback) {
-      return typeof value === 'string' && value.startsWith('/') && !value.startsWith('//') && !value.includes('\\') ? value : fallback
-    },
-    url(path, notice) {
-      if (notice === undefined) return href(path)
-      const separator = path.includes('?') ? '&' : '?'
-      return `${href(path)}${separator}${notice.kind}=${encodeURIComponent(notice.text)}`
+    page({ title, main, notebookId, experimentId, scripts }) {
+      return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${escapeHtml(title)} · ${escapeHtml(look.appTitle)}</title>
+<style>${look.css}</style>
+</head>
+<body class="${look.bodyClass}">
+<div class="shell">${look.sidebar(notebookId, experimentId, href)}<main class="main">${main}</main></div>
+<div id="toast" class="toast" aria-live="polite"></div>
+${CLIENT_SCRIPT}
+${scripts ?? ''}
+</body>
+</html>`
     },
   }
 }

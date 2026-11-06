@@ -8,7 +8,7 @@ import { jsonFileStore, type Store } from './store.ts'
 export * from './domain.ts'
 export * from './lab.ts'
 export * from './store.ts'
-export { seed } from './seed.ts'
+export { seed, SEED_FACTS } from './seed.ts'
 declare module '@deepseek-ai/cordis' { interface Context { lab: Lab } }
 export interface LabConfig { readonly store?: Store<LabState>; readonly clock?: () => Date; readonly newId?: LabAdapters['newId']; readonly file?: string }
 export const name = 'lab'

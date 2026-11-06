@@ -1,9 +1,0 @@
-
-> lab-notebook@0.1.0 prestart
-> node scripts/check-node.cjs
-
-
-> lab-notebook@0.1.0 start
-> node --import ./plugins/acryl-node-server/src/register.ts src/main.ts
-
-lab-notebook listening on http://127.0.0.1:4715 (data in /Users/musichen/_projects/p11_acr_agentcontextrelay/acryldev/_testfield/batch01/b2/lab-notebook/.acrylblends)
