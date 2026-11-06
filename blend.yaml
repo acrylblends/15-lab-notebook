@@ -37,8 +37,8 @@ spec:
     - id: notebooks
       name: notebooks
     # The data table at /data: sample-level measurements, a formulation filter, the append form and the CSV export.
-    - id: data
-      name: data
+    - id: data-table
+      name: data-table
     # Attachments: the files kept with an experiment, with type and size validation.
     - id: attachments
       name: attachments

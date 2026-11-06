@@ -1,5 +1,5 @@
 {
-  "name": "data",
+  "name": "data-table",
   "description": "The data table at /data: sample-level measurements, a formulation filter, the append form and the CSV export at /data.csv.",
   "requires": [],
   "inject": ["lab", "shell", "router"],
@@ -7,5 +7,5 @@
   "dependencies": {
     "@deepseek-ai/cordis": "4.0.4"
   },
-  "mount": "a row `- id: data` / `name: data` after the experiments row in blend.yaml"
+  "mount": "a row `- id: data-table` / `name: data-table` after the notebooks row in blend.yaml"
 }

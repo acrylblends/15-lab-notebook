@@ -6,12 +6,12 @@ import { readManifest } from '../src/app.ts'
 import { seed, SEED_FACTS } from '../plugins/lab/seed.ts'
 import { projectRoot, NOW } from './support.ts'
 
-const FEATURES = ['attachments', 'data', 'experiments', 'lab', 'lab-shell', 'notebooks', 'record'] as const
+const FEATURES = ['attachments', 'data-table', 'experiments', 'lab', 'lab-shell', 'notebooks', 'record'] as const
 
 test('every feature is a row of the manifest, in order', () => {
   assert.deepEqual(
     readManifest().plugins.map((row) => row.id),
-    ['router', 'home', 'lab', 'lab-shell', 'experiments', 'record', 'notebooks', 'data', 'attachments', 'extensions', 'server', 'acryl-door'],
+    ['router', 'home', 'lab', 'lab-shell', 'experiments', 'record', 'notebooks', 'data-table', 'attachments', 'extensions', 'server', 'acryl-door'],
   )
 })
 

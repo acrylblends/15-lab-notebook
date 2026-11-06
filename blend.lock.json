@@ -8,7 +8,7 @@
     "id": "acrylblends.lab-notebook",
     "kind": "Blueprint",
     "version": "0.1.0",
-    "digest": "fc6958f84d18572f61834465232e39e3ad379e78ffdefdaddb4f097fe3fe9a92"
+    "digest": "9b8ba34e52864274fe70816484a3d311fa36cea1bf97d82603fb3dcd072a2b68"
   },
   "parameters": {
     "hostname": "127.0.0.1"
@@ -43,8 +43,8 @@
       "name": "notebooks"
     },
     {
-      "id": "data",
-      "name": "data"
+      "id": "data-table",
+      "name": "data-table"
     },
     {
       "id": "attachments",
@@ -104,10 +104,10 @@
       "source": "plugins/attachments"
     },
     {
-      "name": "data",
+      "name": "data-table",
       "origin": "local",
-      "digest": "sha256:5d41cffb0504c7ad0710239a1fc94f5f563a041d7943a569ad6e6edaffa197c4",
-      "source": "plugins/data"
+      "digest": "sha256:688baf43aa75f9f68627bcf72dd9e25f2029ab5cf314e1b69247883ac9ccd740",
+      "source": "plugins/data-table"
     },
     {
       "name": "experiments",

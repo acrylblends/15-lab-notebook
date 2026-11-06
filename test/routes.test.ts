@@ -212,7 +212,7 @@ test('switching the data plugin off removes the table and the CSV export only', 
   const manifest = readManifest()
   const without = {
     ...manifest,
-    plugins: manifest.plugins.map((row) => (row.id === 'data' ? { ...row, disabled: true } : row)),
+    plugins: manifest.plugins.map((row) => (row.id === 'data-table' ? { ...row, disabled: true } : row)),
   }
   const home = await mkdtemp(join(scratch, 'app-test-off-data-'))
   let ids = 0

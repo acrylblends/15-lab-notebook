@@ -7,7 +7,7 @@ import { Acryl } from '../acryl-router/src/index.ts'
 import { formatNumber, LabError, stampText, type Lab } from '../lab/index.ts'
 import { escapeHtml, pageHead, type Shell } from '../lab-shell/index.ts'
 
-export const name = 'data'
+export const name = 'data-table'
 export const inject = ['lab', 'shell', 'router']
 
 interface Values {
